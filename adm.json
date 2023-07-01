@@ -1,6 +1,0 @@
-use('admin')
-db.admin.insertOne({
-    "username": "admin",
-    "password": "password",
-    "role": "admin"
-})

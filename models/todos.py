@@ -11,8 +11,11 @@ class Admin(BaseModel):
 
 
 class Skin(BaseModel):
-    username: str
-    password: str
+    filename: str
+    contents: str
+    rarity: str
+    name: str
+    value: int
 
     
     
