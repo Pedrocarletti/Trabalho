@@ -44,6 +44,16 @@ async def delete_todo(id:str):
     collection_name.delete_one({"_id": ObjectId(id)})
 
 
+
+async def current_user(username: str = Form(...), password: str = Form(...)):
+    user = collection_adm.find_one({"username": username})
+
+    if not user or not password == user["password"]:
+        raise HTTPException(status_code=403,
+                            detail="Email ou nome de usuário incorretos"
+                           )
+    return current_user
+
 @router.post("/login")
 async def login(username: str = Form(...), password: str = Form(...)):
     user = collection_adm.find_one({"username": username})
@@ -57,7 +67,7 @@ async def login(username: str = Form(...), password: str = Form(...)):
         "token_type": "bearer",
     }
 @router.post("/skin/")
-async def skin(file: UploadFile = File(...), rarity: str = "", name: str = "", value: int = 0):
+async def skin(current_user: collection_adm = Depends(current_user) , file: UploadFile = File(...), rarity: str = "", name: str = "", value: int = 0):
     file.filename = f"{uuid.uuid4()}.jpg"
     contents = await file.read()
     file_data = {
