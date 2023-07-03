@@ -1,8 +1,8 @@
 from fastapi import APIRouter
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Depends
 import uuid
 from models.todos import Todo, Admin, Skin
-from config.database import collection_name, collection_adm
+from config.database import collection_name, collection_adm, collection_skin
 from schema.schemas import list_serial, list_adm, list_filedatas
 from bson import ObjectId
 from fastapi.responses import StreamingResponse
@@ -56,8 +56,8 @@ async def login(username: str = Form(...), password: str = Form(...)):
         "access_token": criar_token_jwt(user["_id"]),
         "token_type": "bearer",
     }
-@router.post("/uploadfile/")
-async def post_upload_file(file: UploadFile = File(...), rarity: str = "", name: str = "", value: int = 0):
+@router.post("/skin/")
+async def skin(file: UploadFile = File(...), rarity: str = "", name: str = "", value: int = 0):
     file.filename = f"{uuid.uuid4()}.jpg"
     contents = await file.read()
     file_data = {
@@ -67,36 +67,39 @@ async def post_upload_file(file: UploadFile = File(...), rarity: str = "", name:
         "name": name,
         "value": value
     }
-    collection_name.insert_one(file_data)
+    collection_skin.insert_one(file_data)
     return {}
 
-@router.get("/image/rarity")
-async def get_image():
-    file_data = list_filedatas(collection_name.find())
+@router.get("/skin/rarity")
+async def get_skin():
+    file_data = list_filedatas(collection_skin.find())
     file_data = sorted(file_data, key=functools.cmp_to_key(compare))
     
     return file_data
 
-@router.get("/image/value")
-async def get_image():
-    file_data = list_filedatas(collection_name.find().sort("value"))
+@router.get("/skin/value")
+async def get_skin():
+    file_data = list_filedatas(collection_skin.find().sort("value"))
     return file_data
+
+
 #put request metodo
 @router.put("/image/{id}")
 async def put_image(id:str, rarity: str = "", name: str = "", value: int = 0):
-    file_data = collection_name.find_one({"_id": ObjectId(id)})
+    file_data = collection_skin.find_one({"_id": ObjectId(id)})
     if file_data is None:
         return {"error": "File not found"}
-    collection_name.find_one_and_update({"_id": ObjectId(id)}, {"$set": {"rarity": rarity, "name": name, "value": value}})
+    collection_skin.find_one_and_update({"_id": ObjectId(id)}, {"$set": {"rarity": rarity, "name": name, "value": value}})
     return {}
+
 
 #delete request metodo
 @router.delete("/image/{id}")
 async def delete_image(id:str):
-    file_data = collection_name.find_one({"_id": ObjectId(id)})
+    file_data = collection_skin.find_one({"_id": ObjectId(id)})
     if file_data is None:
         return {"error": "File not found"}
-    collection_name.delete_one({"_id": ObjectId(id)})
+    collection_skin.delete_one({"_id": ObjectId(id)})
     return {}
 
 
